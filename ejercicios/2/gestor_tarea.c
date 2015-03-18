@@ -9,7 +9,10 @@ struct gestor_tarea{
 
 struct gestor_tarea *curso_gest_tarea_alloc(void)
 {
-	return (struct gestor_tarea *)malloc(sizeof(struct gestor_tarea));
+	struct gestor_tarea *g_tarea = malloc(sizeof(struct gestor_tarea));
+	// Inicializacion de memoria. Nos quita un error de valgrind
+	memset(g_tarea, 0, (sizeof(struct gestor_tarea)));
+	return g_tarea;
 }
 
 void curso_gest_tarea_free(struct gestor_tarea *g_tarea)
@@ -34,7 +37,7 @@ void curso_gest_tarea_attr_unset_tarea(struct gestor_tarea *g_tarea, uint32_t po
 	int i;
 	// Controlamos que la posición  a hacer unset sea mayor que
 	// 0 y menor a num_coches. Si no es así return y salimos
-	if (pos > 0 && pos < g_tarea->num_tareas)
+	if (pos < 0 ||  pos > g_tarea->num_tareas)
 		return;
 
 	// curso_tarea_free(g_tarea->array_tarea[pos]);

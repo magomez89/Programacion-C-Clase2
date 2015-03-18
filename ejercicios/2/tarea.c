@@ -13,31 +13,24 @@ struct tarea {
 struct tarea *curso_tarea_alloc(void)
 {
 	// El malloc se encarga de reservar memoria de tamanyo tarea
-	// Ademas hace casting a tipo tarea
-	return (struct tarea *)malloc(sizeof(struct tarea));
+	struct tarea * t = malloc(sizeof(struct tarea));
+	// Inicializacion de memoria. Nos quita un error de valgrind
+	memset(t, 0, sizeof (struct tarea));
+	return t;
 }
 
 void curso_tarea_free(struct tarea * t)
 {
-	// PREGUNTA. ¿NO HABRIA QUE LIBERAR MEMORIA DE LOS ENTEROS?
-	// Entiendo que al liberar la estructura se libera la memoria del entero.
-	// Es asi puesto que solo es una poscion de memoria. Las cadenas son varias
-	// Con las condiciones if nos aseguramos que liberamos solo si esta
-	// activo el atributo de la estructura para que no de error
 	if (t->flags & (1 << CURSO_TAREA_ATTR_NOMBRE_TAREA))
 		xfree(t->nombre_tarea);
 	if (t->flags & (1 << CURSO_TAREA_ATTR_DESC_TAREA))
 		xfree(t->desc_tarea);
-/*	if (t->flags & (1 << CURSO_TAREA_ATTR_ID))
-		xfree(t->id);*/
 	if (t->flags & (1 << CURSO_TAREA_ATTR_USUARIO))
 		xfree(t->usuario);
-/*	if (t->flags & (1 << CURSO_TAREA_ATTR_PRIORIDAD))
-		xfree(t->prioridad);*/
 	xfree(t);
 }
 
-// ####*** TO DO Comentar esto luego
+
 bool curso_tarea_attr_is_set(const struct tarea *t, uint16_t attr)
 {
 	return t->flags & (1 << attr);
@@ -73,7 +66,7 @@ void curso_tarea_attr_unset(struct tarea *t, uint16_t attr)
 		break;
 	}
 
-	// ####*** TO DO ¿Que hace esta linea?
+
 	t->flags |= (1 << attr);
 }
 
@@ -88,8 +81,6 @@ void curso_tarea_set_data(struct tarea *t, uint16_t attr, const void *data,
 	case CURSO_TAREA_ATTR_NOMBRE_TAREA:
 		if (t->nombre_tarea)
 			xfree(t->nombre_tarea);
-
-		// ¿Que hacia exactamente el strdup?
 		t->nombre_tarea = strdup(data);
 		break;
 	case CURSO_TAREA_ATTR_DESC_TAREA:
@@ -112,7 +103,6 @@ void curso_tarea_set_data(struct tarea *t, uint16_t attr, const void *data,
 		break;
 	}
 
-	// ¿Que hacia esta linea?
 	t->flags |= (1 << attr);
 }
 
@@ -125,7 +115,6 @@ void curso_tarea_attr_set_u32(struct tarea *t, uint16_t  attr, uint32_t data)
 
 void curso_tarea_attr_set_str(struct tarea *t, uint16_t attr, const char *data)
 {
-	// Si nuestro puntero es nulo no debe llamar a set_data. Daría violación de segmento
 	if(data!=NULL){
 		curso_tarea_set_data(t, attr, data, 0);
 	}
@@ -134,18 +123,15 @@ void curso_tarea_attr_set_str(struct tarea *t, uint16_t attr, const char *data)
 const void *curso_tarea_attr_get_data(struct tarea *t, uint16_t attr)
 {
 	// Con este if nos aseguramos que si no esta activo
-	//no podamos coger nada ¿SEGURO?
 	if (!(t->flags & (1 << attr)))
 		return NULL;
 
-	// ####*** TO DO- Investigar diferencias entre cadena y entero
 	switch(attr) {
 	case CURSO_TAREA_ATTR_NOMBRE_TAREA:
 		return t->nombre_tarea;
 	case CURSO_TAREA_ATTR_DESC_TAREA:
 		return t->desc_tarea;
 	case CURSO_TAREA_ATTR_ID:
-		// ¿Por qué se usan los ampersand?
 		return &t->id;
 	case CURSO_TAREA_ATTR_USUARIO:
 		return t->usuario;
