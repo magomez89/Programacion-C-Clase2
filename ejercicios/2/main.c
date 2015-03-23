@@ -34,15 +34,6 @@ int main(void)
 
 	curso_gest_tarea_snprinft(info, sizeof(info), g_tarea);
 	printf("%s", info);
-
-	//curso_gest_tarea_attr_unset_tarea(g_tarea, 1);
-
-	// Con esta función se ve que se libera bien la tarea borrada.
-	// ERROR. De alguna forma sigue mostrandose en pantalla la linea de la tarea
-	// borrada. Aunque con valores basura
-	//curso_gest_tarea_snprinft(info, sizeof(info), g_tarea);
-        // printf("%s", info);
-	// Esto se fastidia al liberar. Doble liberación o algo así
 	curso_gest_tarea_free(g_tarea);
 	return 0;
 }

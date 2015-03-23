@@ -13,9 +13,10 @@ struct tarea {
 struct tarea *curso_tarea_alloc(void)
 {
 	// El malloc se encarga de reservar memoria de tamanyo tarea
-	struct tarea * t = malloc(sizeof(struct tarea));
-	// Inicializacion de memoria. Nos quita un error de valgrind
-	memset(t, 0, sizeof (struct tarea));
+	struct tarea * t = calloc(1, sizeof(struct tarea));
+	// Inicializacion de memoria. Nos quita un error de valgrind.
+	// El calloc ya lleva implicio mem_set
+	// memset(t, 0, sizeof (struct tarea));
 	return t;
 }
 

@@ -9,9 +9,10 @@ struct gestor_tarea{
 
 struct gestor_tarea *curso_gest_tarea_alloc(void)
 {
-	struct gestor_tarea *g_tarea = malloc(sizeof(struct gestor_tarea));
+	// el 1 es el valor maximo de struct a almacenar memoria
+	struct gestor_tarea *g_tarea = calloc(1, sizeof(struct gestor_tarea));
 	// Inicializacion de memoria. Nos quita un error de valgrind
-	memset(g_tarea, 0, (sizeof(struct gestor_tarea)));
+	// memset(g_tarea, 0, (sizeof(struct gestor_tarea)));
 	return g_tarea;
 }
 
@@ -57,7 +58,6 @@ static void curso_gest_tarea_set_data(struct gestor_tarea *g_tarea,
 				      uint16_t attr, const void *data)
 {
 	int pos_a_cambiar;
-	struct tarea *aux_tarea;
 	if (attr > CURSO_GEST_TAREA_ATTR_MAX)
 		return;
 
@@ -76,11 +76,10 @@ static void curso_gest_tarea_set_data(struct gestor_tarea *g_tarea,
 		else
 		{
 			printf("Tarea nueva en posicion %d\n", pos_a_cambiar);
-			aux_tarea = curso_tarea_alloc();
-			aux_tarea =  curso_gest_tarea_attr_get_tarea(g_tarea,
+			// INTERCAMBIO DE POSICIONES CON PUNTEROS
+			g_tarea->array_tarea[g_tarea->num_tareas] = (struct tarea*) curso_gest_tarea_attr_get_tarea(g_tarea,
                                          CURSO_GEST_TAREA_ATTR_TAREA, pos_a_cambiar);
 			g_tarea->array_tarea[pos_a_cambiar] = (struct tarea *)data;
-			g_tarea->array_tarea[g_tarea->num_tareas] = aux_tarea;
 		}
 		g_tarea->num_tareas++;
 		break;
