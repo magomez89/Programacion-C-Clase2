@@ -1,0 +1,125 @@
+From a20465cdf44ccb8a3abd0942e6a7b35aab1030ce Mon Sep 17 00:00:00 2001
+From: magomez89 <manuel.pc23@gmail.com>
+Date: Mon, 23 Mar 2015 17:50:28 +0100
+Subject: [PATCH] Correcion fuga de memoria en gestor_tarea.c y mejora de
+ codigo
+
+Signed-off-by: magomez89 <manuel.pc23@gmail.com>
+---
+ ejercicios/2/gestor_tarea.c    | 11 +++++------
+ ejercicios/2/main.c            |  9 ---------
+ ejercicios/2/tarea.c           |  7 ++++---
+ ejercicios/3/1/concesionario.c | 12 +++++++++++-
+ 4 files changed, 20 insertions(+), 19 deletions(-)
+
+diff --git a/ejercicios/2/gestor_tarea.c b/ejercicios/2/gestor_tarea.c
+index 6d1e4f4..3ecd401 100644
+--- a/ejercicios/2/gestor_tarea.c
++++ b/ejercicios/2/gestor_tarea.c
+@@ -9,9 +9,10 @@ struct gestor_tarea{
+ 
+ struct gestor_tarea *curso_gest_tarea_alloc(void)
+ {
+-	struct gestor_tarea *g_tarea = malloc(sizeof(struct gestor_tarea));
++	// el 1 es el valor maximo de struct a almacenar memoria
++	struct gestor_tarea *g_tarea = calloc(1, sizeof(struct gestor_tarea));
+ 	// Inicializacion de memoria. Nos quita un error de valgrind
+-	memset(g_tarea, 0, (sizeof(struct gestor_tarea)));
++	// memset(g_tarea, 0, (sizeof(struct gestor_tarea)));
+ 	return g_tarea;
+ }
+ 
+@@ -57,7 +58,6 @@ static void curso_gest_tarea_set_data(struct gestor_tarea *g_tarea,
+ 				      uint16_t attr, const void *data)
+ {
+ 	int pos_a_cambiar;
+-	struct tarea *aux_tarea;
+ 	if (attr > CURSO_GEST_TAREA_ATTR_MAX)
+ 		return;
+ 
+@@ -76,11 +76,10 @@ static void curso_gest_tarea_set_data(struct gestor_tarea *g_tarea,
+ 		else
+ 		{
+ 			printf("Tarea nueva en posicion %d\n", pos_a_cambiar);
+-			aux_tarea = curso_tarea_alloc();
+-			aux_tarea =  curso_gest_tarea_attr_get_tarea(g_tarea,
++			// INTERCAMBIO DE POSICIONES CON PUNTEROS
++			g_tarea->array_tarea[g_tarea->num_tareas] = (struct tarea*) curso_gest_tarea_attr_get_tarea(g_tarea,
+                                          CURSO_GEST_TAREA_ATTR_TAREA, pos_a_cambiar);
+ 			g_tarea->array_tarea[pos_a_cambiar] = (struct tarea *)data;
+-			g_tarea->array_tarea[g_tarea->num_tareas] = aux_tarea;
+ 		}
+ 		g_tarea->num_tareas++;
+ 		break;
+diff --git a/ejercicios/2/main.c b/ejercicios/2/main.c
+index a055777..3a4a60d 100644
+--- a/ejercicios/2/main.c
++++ b/ejercicios/2/main.c
+@@ -34,15 +34,6 @@ int main(void)
+ 
+ 	curso_gest_tarea_snprinft(info, sizeof(info), g_tarea);
+ 	printf("%s", info);
+-
+-	//curso_gest_tarea_attr_unset_tarea(g_tarea, 1);
+-
+-	// Con esta función se ve que se libera bien la tarea borrada.
+-	// ERROR. De alguna forma sigue mostrandose en pantalla la linea de la tarea
+-	// borrada. Aunque con valores basura
+-	//curso_gest_tarea_snprinft(info, sizeof(info), g_tarea);
+-        // printf("%s", info);
+-	// Esto se fastidia al liberar. Doble liberación o algo así
+ 	curso_gest_tarea_free(g_tarea);
+ 	return 0;
+ }
+diff --git a/ejercicios/2/tarea.c b/ejercicios/2/tarea.c
+index a47d9c3..0f9dd5e 100644
+--- a/ejercicios/2/tarea.c
++++ b/ejercicios/2/tarea.c
+@@ -13,9 +13,10 @@ struct tarea {
+ struct tarea *curso_tarea_alloc(void)
+ {
+ 	// El malloc se encarga de reservar memoria de tamanyo tarea
+-	struct tarea * t = malloc(sizeof(struct tarea));
+-	// Inicializacion de memoria. Nos quita un error de valgrind
+-	memset(t, 0, sizeof (struct tarea));
++	struct tarea * t = calloc(1, sizeof(struct tarea));
++	// Inicializacion de memoria. Nos quita un error de valgrind.
++	// El calloc ya lleva implicio mem_set
++	// memset(t, 0, sizeof (struct tarea));
+ 	return t;
+ }
+ 
+diff --git a/ejercicios/3/1/concesionario.c b/ejercicios/3/1/concesionario.c
+index 389fdad..ef9a301 100644
+--- a/ejercicios/3/1/concesionario.c
++++ b/ejercicios/3/1/concesionario.c
+@@ -1,3 +1,4 @@
++
+ #include "concesionario.h"
+ #include <string.h>
+ 
+@@ -30,11 +31,20 @@ void curso_concesionario_free(struct concesionario *con)
+ void curso_concesionario_attr_unset_coche(struct concesionario *con,
+ 					  uint32_t pos)
+ {
++	/*Modificado el metodo unset para poder quitar elemento de la lista que libera primero
++	y asi cuando libere en el main, libere el resto y no se libere dos veces el mismo*/
++	int i;
++
+ 	if (pos > 0 && pos > con->num_coches)
+ 		return;
+ 
+-	con->num_coches--;
+ 	curso_coche_free(con->garaje[pos]);
++
++	for (i = pos; i < con->num_coches-1; i++)
++                con->garaje[i] = con->garaje[i+1];
++
++	con->num_coches--;
++
+ }
+ 
+ static void curso_concesionario_set_data(struct concesionario *con,
+-- 
+1.9.1
+
